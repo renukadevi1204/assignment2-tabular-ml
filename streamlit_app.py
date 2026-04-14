@@ -45,9 +45,14 @@ cat_cols = ['Month', 'OperatingSystems', 'Browser', 'Region',
 # ── Load Models ───────────────────────────────────────────────
 @st.cache_resource
 def load_models():
-    scaler         = joblib.load('models/scaler.pkl')
-    label_encoders = joblib.load('models/label_encoders.pkl')
-    lgb_model      = joblib.load('models/lgb_model.pkl')
+    import os
+    # Get the directory where streamlit_app.py is located
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    models_dir = os.path.join(base_dir, 'models')
+    
+    scaler         = joblib.load(os.path.join(models_dir, 'scaler.pkl'))
+    label_encoders = joblib.load(os.path.join(models_dir, 'label_encoders.pkl'))
+    lgb_model      = joblib.load(os.path.join(models_dir, 'lgb_model.pkl'))
 
     cat_dims = [le.classes_.shape[0] + 1 for le in label_encoders.values()]
     mlp_model = ShopperMLP(
@@ -57,8 +62,9 @@ def load_models():
         hidden_dims=[256, 128, 64],
         dropout=0.3
     )
-    mlp_model.load_state_dict(torch.load('models/mlp_model.pth',
-                                          map_location='cpu'))
+    mlp_model.load_state_dict(torch.load(
+        os.path.join(models_dir, 'mlp_model.pth'),
+        map_location='cpu'))
     mlp_model.eval()
     return scaler, label_encoders, lgb_model, mlp_model
 
